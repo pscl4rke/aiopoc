@@ -31,6 +31,8 @@ async def supervise_0(fn: Callable, *args: Any) -> None:
 # And we can lean into the stdlib logging library to show the traceback.
 #
 # BUT... it's really not obvious how well it handles being cancelled from outside.
+# Since Python 3.8 CancelledException subclasses BaseException, not Exception,
+# so the following code won't start a new instance of fn.
 #
 async def supervise_1(fn: Callable, *args: Any) -> None:
     while True:

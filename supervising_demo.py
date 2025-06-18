@@ -11,7 +11,7 @@ async def hello(queue) -> None:
     raise Exception("Went wrong")
 
 
-async def main():
+async def main_queue():
     queue = asyncio.Queue()
     task = asyncio.create_task(supervising.supervise_1(hello, queue))
     for name in ["Matthew", "Mark", "Luke", "John"]:
@@ -22,5 +22,11 @@ async def main():
     task.cancel()
 
 
+async def main_timeout():
+    queue = asyncio.Queue()
+    await asyncio.wait_for(supervising.supervise_1(hello, queue), 3)
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main_queue())
+    #asyncio.run(main_timeout())
