@@ -1,7 +1,7 @@
 
 
 from contextlib import asynccontextmanager
-from typing import Coroutine, Generator
+from typing import Coroutine, AsyncIterator
 
 import asyncio
 
@@ -20,9 +20,35 @@ import asyncio
 # Q. What should be yielded? the task? the coro? something else?
 #
 @asynccontextmanager
-async def daemonise(coro: Coroutine) -> Generator:
+async def daemonise(coro: Coroutine) -> AsyncIterator:
     task = asyncio.create_task(coro)
     try:
         yield
+    finally:
+        task.cancel()
+
+
+# By passing in an existing task object the use can decide whether to create
+# an ordinary Task or one in a TaskGroup.
+#
+# Calling it "cancelling(...)" gives a nice symmetry with contextlib.closing(...)
+# and contextlib.aclosing(...).
+@asynccontextmanager
+async def cancelling(task: asyncio.Task) -> AsyncIterator:
+    try:
+        yield task
+    finally:
+        task.cancel()
+
+
+# Why not allow either Tasks or Coroutines to be passed in:
+#
+# You could even define a typing.Protocol to specify the right method.
+#
+@asynccontextmanager
+async def cancelling2(cancellable: Coroutine | asyncio.Task) -> AsyncIterator:
+    task = asyncio.ensure_future(cancellable)
+    try:
+        yield task
     finally:
         task.cancel()
